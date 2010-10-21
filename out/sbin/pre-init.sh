@@ -261,6 +261,7 @@ fi
 /sbin/busybox rm /system/bin/fat.format
 
 /sbin/busybox ln -s /system/etc /etc
+cp /res/misc/mke2fs.conf /etc
 
 DATA_FS_TYPE=rfs
 CACHE_FS_TYPE=rfs
@@ -286,14 +287,7 @@ filesystem_check() {
   fi
 
   if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep ext[24]`" ]; then
-    CHECK_RESULT=ext2
-    /sbin/busybox umount /data
-    /sbin/busybox mount -t ext4 /dev/block/mmcblk0p2 /data
-    if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep ext4`" ]; then
-      CHECK_RESULT=ext4
-    else
-      /sbin/busybox mount -t ext2 /dev/block/mmcblk0p2 /data
-    fi
+    CHECK_RESULT=ext4
   fi
 }
 
