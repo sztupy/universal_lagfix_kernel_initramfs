@@ -270,12 +270,17 @@ DATA_LOOP=false
 CACHE_LOOP=false
 DBDATA_LOOP=false
 echo checking filesystem and creating lagfix config
+# jfs needs to checked or else it won't mount
+fsck.jfs -p /dev/block/mmcblk0p2
+fsck.jfs -p /dev/block/stl10
+fsck.jfs -p /dev/block/stl11
 /sbin/busybox mount /dev/block/mmcblk0p2 /data
 /sbin/busybox mount /dev/block/stl10 /dbdata
 /sbin/busybox mount /dev/block/stl11 /cache
 
 # params $1 blockname
 filesystem_check() {
+  CHECK_RESULT=rfs
   if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep jfs`" ]; then
     CHECK_RESULT=jfs
   fi
@@ -290,7 +295,6 @@ filesystem_check() {
       /sbin/busybox mount -t ext2 /dev/block/mmcblk0p2 /data
     fi
   fi
-  CHECK_RESULT=rfs
 }
 
 filesystem_check /dev/block/mmcblk0p2

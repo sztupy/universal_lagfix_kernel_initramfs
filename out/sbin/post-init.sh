@@ -2,8 +2,46 @@
 # filesystem patcher
 # Copyright SztupY, Licence: GPLv3
 
+export PATH=/sbin:/system/bin:/system/xbin
+mv /system/user.log /system/user.log.old
+exec >>/system/user.log
+exec 2>&1
+
 # init read-only'd the rootfs
 /sbin/busybox mount -o remount,rw /
+
+# run fs tweaks
+if /sbin/busybox [ "`grep IOSCHED /system/etc/tweaks.conf`" ]; then
+  # Tweak cfq io scheduler
+  for i in $(ls -1 /sys/block/stl*) $(ls -1 /sys/block/mmc*) $(ls -1 /sys/block/bml*) $(ls -1 /sys/block/tfsr*)
+  do echo "0" > $i/queue/rotational
+    echo "1" > $i/queue/iosched/low_latency
+    echo "1" > $i/queue/iosched/back_seek_penalty
+    echo "1000000000" > $i/queue/iosched/back_seek_max
+    echo "3" > $i/queue/iosched/slice_idle
+  done
+fi
+
+# Tweak kernel VM management
+if /sbin/busybox [ "`grep KERNELVM /system/etc/tweaks.conf`" ]; then
+  echo "0" > /proc/sys/vm/swappiness
+  echo "10" > /proc/sys/vm/dirty_ratio
+  echo "1000" > /proc/sys/vm/vfs_cache_pressure
+  echo "4096" > /proc/sys/vm/min_free_kbytes
+fi
+
+# Tweak kernel scheduler
+if /sbin/busybox [ "`grep KERNELSCHED /system/etc/tweaks.conf`" ]; then
+  echo "2000000" > /proc/sys/kernel/sched_latency_ns
+  echo "500000" > /proc/sys/kernel/sched_wakeup_granularity_ns
+  echo "400000" > /proc/sys/kernel/sched_min_granularity_ns
+fi
+
+# Miscellaneous tweaks
+if /sbin/busybox [ "`grep MISC /system/etc/tweaks.conf`" ]; then
+  setprop dalvik.vm.startheapsize 8m
+  setprop wifi.supplicant_scan_interval 90
+fi
 
 # We will delete these links including the symlink to CWM's busybox, so they won't interfere with the optionally installed busybox on the device
 /sbin/busybox rm /sbin/[
@@ -173,19 +211,7 @@
 /sbin/busybox rm /sbin/busybox
 
 # init.d support
-export PATH=/sbin:/system/bin:/system/xbin
-mv /system/user.log /system/user.log.old
-exec >>/system/user.log
-exec 2>&1
 cd /sbin/init.d
-echo $(date) SYSTEM EARLY INIT START
-for file in E* ; do
-    if ! cat "$file" >/dev/null 2>&1 ; then continue ; fi
-        echo "START '$file'"
-        /system/bin/sh "$file"
-        echo "EXIT '$file' ($?)"
-done
-echo $(date) SYSTEM EARLY INIT DONE
 echo $(date) USER EARLY INIT START
 if cd /system/etc/init.d >/dev/null 2>&1 ; then
     for file in E* ; do
@@ -196,8 +222,6 @@ if cd /system/etc/init.d >/dev/null 2>&1 ; then
     done
 fi
 echo $(date) USER EARLY INIT DONE
-
-export PATH=/sbin:/system/bin:/system/xbin
 echo $(date) USER INIT START
 if cd /system/etc/init.d >/dev/null 2>&1 ; then
     for file in S* ; do
