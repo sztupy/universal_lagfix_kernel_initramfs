@@ -269,94 +269,77 @@ BIND_DATA_TO_DBDATA=false
 DATA_LOOP=false
 CACHE_LOOP=false
 DBDATA_LOOP=false
-#if /sbin/busybox [ ! -f "/system/etc/lagfix.conf.old" ]; then
-  echo checking filesystem and creating lagfix config
-  /sbin/busybox mount /dev/block/mmcblk0p2 /data
-  /sbin/busybox mount /dev/block/stl10 /dbdata
-  /sbin/busybox mount /dev/block/stl11 /cache
-  if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep /dev/block/mmcblk0p2 | /sbin/busybox grep ext`" ]; then
-#    if /sbin/busybox [ ! -f "/system/etc/lagfix.conf" -a -f "/cache/recovery/command" ]; then
-      # We don't have a config, but have an update to process. Probably it's our first boot, and it's supplied with the CSC.tar.
-      # If we have previously updated /data to something other than rfs it will be formatted to rfs at the end of this recovery session,
-      # so return early
-      ##### commented out: this is handled in recovery.sh!
-#      exit 0
-#    else
-      DATA_FS_TYPE=ext2
-      /sbin/busybox umount /data
-      /sbin/busybox mount -t ext4 /dev/block/mmcblk0p2 /data
-      if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep /dev/block/mmcblk0p2 | /sbin/busybox grep ext[24]`" ]; then
-        DATA_FS_TYPE=ext4
-      else
-        /sbin/busybox mount -t ext2 /dev/block/mmcblk0p2 /data
-      fi
-#    fi
+echo checking filesystem and creating lagfix config
+/sbin/busybox mount /dev/block/mmcblk0p2 /data
+/sbin/busybox mount /dev/block/stl10 /dbdata
+/sbin/busybox mount /dev/block/stl11 /cache
+
+# params $1 blockname
+filesystem_check() {
+  if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep jfs`" ]; then
+    CHECK_RESULT=jfs
   fi
 
-  if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep /dev/block/stl10 | /sbin/busybox grep ext[24]`" ]; then
-    DBDATA_FS_TYPE=ext2
-    /sbin/busybox umount /dbdata
-    /sbin/busybox mount -t ext4 /dev/block/stl10 /dbdata
-    if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep /dev/block/stl10 | /sbin/busybox grep ext4`" ]; then
-      DBDATA_FS_TYPE=ext4
+  if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep ext[24]`" ]; then
+    CHECK_RESULT=ext2
+    /sbin/busybox umount /data
+    /sbin/busybox mount -t ext4 /dev/block/mmcblk0p2 /data
+    if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep ext4`" ]; then
+      CHECK_RESULT=ext4
     else
-      /sbin/busybox mount -t ext2 /dev/block/stl10 /dbdata
+      /sbin/busybox mount -t ext2 /dev/block/mmcblk0p2 /data
     fi
   fi
+  CHECK_RESULT=rfs
+}
 
-  if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep /dev/block/stl11 | /sbin/busybox grep ext[24]`" ]; then
-    CACHE_FS_TYPE=ext2
-    /sbin/busybox umount /cache
-    /sbin/busybox mount -t ext4 /dev/block/stl11 /cache
-    if /sbin/busybox [ "`/sbin/busybox mount | /sbin/busybox grep /dev/block/stl11 | /sbin/busybox grep ext4`" ]; then
-      CACHE_FS_TYPE=ext4
-    else
-      /sbin/busybox mount -t ext2 /dev/block/stl11 /cache
-    fi
-  fi
+filesystem_check /dev/block/mmcblk0p2
+DATA_FS_TYPE=$CHECK_RESULT
+filesystem_check /dev/block/stl10
+DBDATA_FS_TYPE=$CHECK_RESULT
+filesystem_check /dev/block/stl11
+CACHE_FS_TYPE=$CHECK_RESULT
 
-  echo check for loop files
-  if /sbin/busybox [ -f "/data/.extfs" ]; then
-    DATA_LOOP=ext2
-  fi
-  if /sbin/busybox [ -f "/dbdata/.extfs" ]; then
-    DBDATA_LOOP=ext2
-  fi
-  if /sbin/busybox [ -f "/cache/.extfs" ]; then
-    CACHE_LOOP=ext2
-  fi
+echo check for loop files
+if /sbin/busybox [ -f "/data/.extfs" ]; then
+  DATA_LOOP=ext2
+fi
+if /sbin/busybox [ -f "/dbdata/.extfs" ]; then
+  DBDATA_LOOP=ext2
+fi
+if /sbin/busybox [ -f "/cache/.extfs" ]; then
+  CACHE_LOOP=ext2
+fi
 
-  echo check for bind mounts
-  if /sbin/busybox [ $DBDATA_LOOP == "ext2" ]; then
-    /sbin/busybox mkdir /testtmp
-    /sbin/busybox losetup /dev/block/loop0 /dbdata/.extfs
-    /sbin/busybox mount /dev/block/loop0 /testtmp
-    if /sbin/busybox [ -d "/testtmp/.data" ]; then
-      BIND_DATA_TO_DBDATA=true
-    fi
-    /sbin/busybox umount /testtmp
-    /sbin/busybox losetup -d /dev/block/loop0
-    /sbin/busybox rmdir /testtmp
-  else
-    if /sbin/busybox [ -d "/dbdata/.data" ]; then
-      BIND_DATA_TO_DBDATA=true
-    fi
-  fi;
-  /sbin/busybox echo -e -n "DATA_FS=$DATA_FS_TYPE\nCACHE_FS=$CACHE_FS_TYPE\nDBDATA_FS=$DBDATA_FS_TYPE\nDATA_LOOP=$DATA_LOOP\nCACHE_LOOP=$CACHE_LOOP\nDBDATA_LOOP=$DBDATA_LOOP\nBIND_DATA_TO_DBDATA=$BIND_DATA_TO_DBDATA\n" > /system/etc/lagfix.conf.old
-  if /sbin/busybox [ ! -f "/system/etc/lagfix.conf" ]; then
-    /sbin/busybox cat /system/etc/lagfix.conf.old > /system/etc/lagfix.conf
+echo check for bind mounts
+# if dbdata has a loop device bind to that
+if /sbin/busybox [ $DBDATA_LOOP == "ext2" ]; then
+  /sbin/busybox mkdir /testtmp
+  /sbin/busybox losetup /dev/block/loop0 /dbdata/.extfs
+  /sbin/busybox mount /dev/block/loop0 /testtmp
+  if /sbin/busybox [ -d "/testtmp/.data" ]; then
+    BIND_DATA_TO_DBDATA=data
   fi
-  echo The actual config is:
-  /sbin/busybox cat /system/etc/lagfix.conf.old
-  /sbin/busybox umount /data
-  /sbin/busybox umount /dbdata
-  /sbin/busybox umount /cache
-#else
-#  echo Loading config
-#  source /system/etc/lagfix.conf
-#fi
+  /sbin/busybox umount /testtmp
+  /sbin/busybox losetup -d /dev/block/loop0
+  /sbin/busybox rmdir /testtmp
+else
+  if /sbin/busybox [ -d "/dbdata/.data" ]; then
+    BIND_DATA_TO_DBDATA=data
+  fi
+fi;
 
-# mounts a block device, and formats it to ext2/4 if needed
+/sbin/busybox echo -e -n "DATA_FS=$DATA_FS_TYPE\nCACHE_FS=$CACHE_FS_TYPE\nDBDATA_FS=$DBDATA_FS_TYPE\nDATA_LOOP=$DATA_LOOP\nCACHE_LOOP=$CACHE_LOOP\nDBDATA_LOOP=$DBDATA_LOOP\nBIND_DATA_TO_DBDATA=$BIND_DATA_TO_DBDATA\n" > /system/etc/lagfix.conf.old
+if /sbin/busybox [ ! -f "/system/etc/lagfix.conf" ]; then
+  /sbin/busybox cat /system/etc/lagfix.conf.old > /system/etc/lagfix.conf
+fi
+echo The actual config is:
+/sbin/busybox cat /system/etc/lagfix.conf.old
+/sbin/busybox umount /data
+/sbin/busybox umount /dbdata
+/sbin/busybox umount /cache
+
+# mounts a block device, and formats it to jfs or ext2/4 if needed
 # params: $1 block $2 mount point $3 format to
 mount_block() {
   echo "Trying to mount $1 to $2"
@@ -364,7 +347,7 @@ mount_block() {
   if /sbin/busybox [ -z "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep $3`" ]; then
     echo Could not mount as $3. First trying to fsck it, maybe its corrigable
     /sbin/busybox umount $1
-    /sbin/e2fsck -p $1
+    /sbin/fsck.$3 -p $1
     /sbin/busybox mount -t $3 $1 $2
     if /sbin/busybox [ -z "`/sbin/busybox mount | /sbin/busybox grep $1 | /sbin/busybox grep $3`" ]; then
       echo Still doesnt work. Destroy and re-create it
@@ -378,7 +361,7 @@ mount_block() {
   else
     echo Run a filesystem check on it
     /sbin/busybox umount $1
-    /sbin/e2fsck -p $1
+    /sbin/fsck.$3 -p $1
   fi;
 }
 
@@ -419,8 +402,10 @@ final_mount() {
     else
       if /sbin/busybox [ $5 == "ext2" ]; then
         /sbin/busybox mount -t ext2 -o noatime,nodiratime $1 $3
-      else
+      elif /sbin/busybox [ $5 == "ext4" ]; then
         /sbin/busybox mount -t ext4 -o noatime,barrier=0,noauto_da_alloc $1 $3
+      else
+        /sbin/busybox mount -t jfs -o noatime,nodiratime,errors=continue $1 $3
       fi
     fi
   fi
@@ -472,10 +457,10 @@ else
   final_mount /dev/block/stl11 /dev/block/loop3 /cache /res/ocache $CACHE_FS_TYPE $CACHE_LOOP
 
   # create mount bindings
-  if /sbin/busybox [ $BIND_DATA_TO_DBDATA == "true" ]; then
+  if /sbin/busybox [ $BIND_DATA_TO_DBDATA == "data" ]; then
     /sbin/busybox mkdir /data/data
-    /sbin/busybox mkdir /data/dalvik-cache
+    #/sbin/busybox mkdir /data/dalvik-cache
     /sbin/busybox mount -o bind /dbdata/.data/data /data/data
-    /sbin/busybox mount -o bind /dbdata/.data/dalvik-cache /data/dalvik-cache
+    #/sbin/busybox mount -o bind /dbdata/.data/dalvik-cache /data/dalvik-cache
   fi
 fi

@@ -172,6 +172,43 @@
 # self destruct :)
 /sbin/busybox rm /sbin/busybox
 
+# init.d support
+export PATH=/sbin:/system/bin:/system/xbin
+mv /system/user.log /system/user.log.old
+exec >>/system/user.log
+exec 2>&1
+cd /sbin/init.d
+echo $(date) SYSTEM EARLY INIT START
+for file in E* ; do
+    if ! cat "$file" >/dev/null 2>&1 ; then continue ; fi
+        echo "START '$file'"
+        /system/bin/sh "$file"
+        echo "EXIT '$file' ($?)"
+done
+echo $(date) SYSTEM EARLY INIT DONE
+echo $(date) USER EARLY INIT START
+if cd /system/etc/init.d >/dev/null 2>&1 ; then
+    for file in E* ; do
+        if ! cat "$file" >/dev/null 2>&1 ; then continue ; fi
+        echo "START '$file'"
+        /system/bin/sh "$file"
+        echo "EXIT '$file' ($?)"
+    done
+fi
+echo $(date) USER EARLY INIT DONE
+
+export PATH=/sbin:/system/bin:/system/xbin
+echo $(date) USER INIT START
+if cd /system/etc/init.d >/dev/null 2>&1 ; then
+    for file in S* ; do
+        if ! ls "$file" >/dev/null 2>&1 ; then continue ; fi
+        echo "START '$file'"
+        /system/bin/sh "$file"
+        echo "EXIT '$file' ($?)"
+    done
+fi
+echo $(date) USER INIT DONE
+
 # rootfs and system should be closed for now
 /res/mount -o remount,ro /
 /res/mount -o remount,ro /system
