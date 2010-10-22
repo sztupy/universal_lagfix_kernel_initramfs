@@ -65,6 +65,14 @@
 /sbin/busybox mknod /dev/graphics/fb3 c 29 3
 /sbin/busybox mknod /dev/graphics/fb4 c 29 4
 
+/sbin/busybox mkdir /dev/input
+/sbin/busybox mknod /dev/input/event0 c 13 64
+/sbin/busybox mknod /dev/input/event1 c 13 65
+/sbin/busybox mknod /dev/input/event2 c 13 66
+/sbin/busybox mknod /dev/input/event3 c 13 67
+/sbin/busybox mknod /dev/input/mice c 13 63
+/sbin/busybox mknod /dev/input/mouse0 c 13 32
+
 # busybox is already a symlink to CWM's recovery. Now create the remaining part
 # We will delete these links including the symlink to busybox post-init, so they won't interfere with the installed busybox on the device
 /sbin/busybox ln -s /sbin/busybox "/sbin/["
@@ -275,6 +283,11 @@ echo checking filesystem and creating lagfix config
 fsck.jfs -p /dev/block/mmcblk0p2
 fsck.jfs -p /dev/block/stl10
 fsck.jfs -p /dev/block/stl11
+# we don't vant rfs get mounted in vfat mode, as it might break things
+/sbin/busybox mount -t rfs -o nosuid,nodev,check=no /dev/block/mmcblk0p2 /data
+/sbin/busybox mount -t rfs -o nosuid,nodev,check=no /dev/block/stl10 /dbdata
+/sbin/busybox mount -t rfs -o nosuid,nodev,check=no /dev/block/stl11 /cache
+# all other filesystems can detect themselves
 /sbin/busybox mount /dev/block/mmcblk0p2 /data
 /sbin/busybox mount /dev/block/stl10 /dbdata
 /sbin/busybox mount /dev/block/stl11 /cache
@@ -413,16 +426,42 @@ if /sbin/busybox [ "`/sbin/busybox diff /system/etc/lagfix.conf /system/etc/lagf
   echo Configs differ, load the lagfixer
   /sbin/busybox diff /system/etc/lagfix.conf /system/etc/lagfix.conf.old
   /sbin/busybox ln -s /sbin/recovery /sbin/lagfixer
+  /sbin/busybox ln -s /sbin/recovery /sbin/graphchoice
   /sbin/busybox mkdir -p /mnt/sdcard
   /sbin/busybox ln -s /mnt/sdcard /sdcard
-  /sbin/lagfixer > /res/lagfix.log 2>&1
   /sbin/busybox ln -s /sbin/recovery /sbin/reboot
-  /sbin/busybox sleep 5
-  # only reboot if we're not in recovery mode for debug purposes
-  if /sbin/busybox [ -z "`/sbin/busybox grep 'bootmode=2' /proc/cmdline`" ]; then
-    /sbin/busybox cp /res/pre-init.log /sdcard/
-    /sbin/busybox cp /res/lagfix.log /sdcard/
-    /sbin/reboot -f
+  echo "Starting choice app"
+  /sbin/graphchoice "Configs differ. Continue with conversion?" "Yes, with backup and restore" "Yes, with factory reset after backup" "Yes, with factory reset without backup" "No, enter recovery mode" "No, remove the new config"
+  RESULT=$?
+  echo "Choice was: $RESULT"
+  LFOPTS="br"
+  if /sbin/busybox [ $RESULT == "1" ]; then
+    RESULT="0"
+    LFOPTS="b"
+  fi
+  if /sbin/busybox [ $RESULT == "2" ]; then
+    RESULT="0"
+    LFOPTS="fr"
+  fi
+  if /sbin/busybox [ $RESULT == "0" ]; then
+    /sbin/lagfixer $LFOPTS > /res/lagfix.log 2>&1
+    /sbin/busybox sleep 5
+    # only reboot if we're not in recovery mode for debug purposes
+    if /sbin/busybox [ -z "`/sbin/busybox grep 'bootmode=2' /proc/cmdline`" ]; then
+      /sbin/busybox cp /res/pre-init.log /sdcard/
+      /sbin/busybox cp /res/lagfix.log /sdcard/
+      /sbin/reboot -f
+    fi
+  else
+    if /sbin/busybox [ $RESULT == "4" ]; then
+      rm /system/etc/lagfix.conf
+      rm /system/etc/lagfix.conf.old
+      /sbin/reboot recovery
+    fi
+    if /sbin/busybox [ -z "`/sbin/busybox grep 'bootmode=2' /proc/cmdline`" ]; then
+      /sbin/recovery
+      /sbin/reboot recovery
+    fi
   fi
 else
   echo "Configs are the same, load up the mounts"

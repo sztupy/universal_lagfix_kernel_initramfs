@@ -1,0 +1,195 @@
+    mkdir /mnt 0775 root system
+    mkdir /mnt/sdcard 0000 system system
+    mkdir /acct
+    mkdir /acct/uid
+    mkdir /mnt/.lfs 0755 root root
+    mkdir /system
+    mkdir /data 0771 system system
+    mkdir /efs 0771 system system
+    chown system system /efs
+    chmod 0771 /efs
+    mkdir /cache 0770 system cache
+    mkdir /config 0500 root root
+    mkdir /mnt/secure 0700 root root
+    mkdir /mnt/secure/staging 0700 root root
+    mkdir /mnt/secure/asec  0700 root root
+    mkdir /mnt/asec  0700 root system
+    mkdir /dev/cpuctl
+    chown system system /dev/cpuctl
+    chown system system /dev/cpuctl/tasks
+    chmod 0777 /dev/cpuctl/tasks
+    mkdir /dev/cpuctl/fg_boost
+    chown system system /dev/cpuctl/fg_boost/tasks
+    chmod 0777 /dev/cpuctl/fg_boost/tasks
+    mkdir /dev/cpuctl/bg_non_interactive
+    chown system system /dev/cpuctl/bg_non_interactive/tasks
+    chmod 0777 /dev/cpuctl/bg_non_interactive/tasks
+    # We chown/chmod /data again so because mount is run as root + defaults
+    mkdir /data
+    chown system system /data
+    chmod 0771 /data
+    mkdir /dbdata
+    chown system system /dbdata
+    chmod 0771 /dbdata
+    chmod 0771 /dbdata
+    mkdir /dbdata/databases
+    chown system system /dbdata/databases
+    chmod 0777 /dbdata/databases
+    mkdir /dbdata/system
+    chown system system /dbdata/system
+    chmod 0775 /dbdata/system
+    mkdir /data/dontpanic
+    chown root log /data/dontpanic
+    chmod 0750 /data/dontpanic
+    chown root log /data/dontpanic/apanic_console
+    chmod 0640 /data/dontpanic/apanic_console
+    chown root log /data/dontpanic/apanic_threads
+    chmod 0640 /data/dontpanic/apanic_threads
+    chown system cache /cache
+    chmod 0770 /cache
+    chown system cache /cache/recovery
+    chmod 0770 /cache/recovery
+    #chown system system /efs
+    chown radio radio /efs
+    chmod 0771 /efs
+    chown root log /proc/vmallocinfo
+    chmod 0440 /proc/vmallocinfo
+    chown root system /dev/s3c2410_serial1
+    chmod 664 /dev/s3c2410_serial1
+    mkdir /data/gps 771 system system
+    chown system system /data/gps
+    chown root system /sys/class/sec/gps/GPS_PWR_EN/value
+    chmod 664 /sys/class/sec/gps/GPS_PWR_EN/value
+    chown root system /sys/class/gpio/gpio121/value
+    chmod 664 /sys/class/gpio/gpio121/value
+    chown root system /sys/class/gpio/gpio120/value
+    chmod 664 /sys/class/gpio/gpio120/value
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
+    mkdir /data/misc/bluetooth 0770 system system
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc/vpn 0770 system system
+    mkdir /data/misc/systemkeys 0700 system system
+    mkdir /data/misc/vpn/profiles 0770 system system
+    mkdir /data/misc/radio 0771 radio radio
+    mkdir /data/misc/wifi 0770 wifi wifi
+    chmod 0770 /data/misc/wifi
+	mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/dhcp 0770 dhcp dhcp
+    mkdir /data/wifi 0770 wifi wifi
+    chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+    mkdir /data/local 0771 shell shell
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/data 0771 system system
+    mkdir /data/app-private 0771 system system
+    mkdir /data/app 0771 system system
+    mkdir /data/property 0700 root root
+    mkdir /data/log 0777 root root
+    chmod 0777 /data/log
+    chmod 0777 /data/anr
+    chmod 0662 /dev/log/radio
+    chmod 0662 /dev/log/main
+    chmod 0662 /dev/log/event
+    mkdir /data/dalvik-cache 0771 system system
+    chown system system /data/dalvik-cache
+    chmod 0771 /data/dalvik-cache
+    mkdir /data/lost+found 0770
+    mkdir /cache/lost+found 0770
+    chown root root /data/lost+found
+    chmod 0770 /data/lost+found
+    chown root root /cache/lost+found
+    chmod 0770 /cache/lost+found
+    chown radio radio /dev/dpramerr
+    chown radio radio /dev/dpram0
+    chown radio radio /dev/dpram1
+    chown radio radio /dev/dpram2
+    chown radio radio /dev/onedram_rfs
+    chown radio radio /dev/multipdp
+    chmod 0777 /dev/usb_mtp_gadget
+    mkdir /system/etc/security/drm 0777
+    chown root root /system/etc/security/drm
+    chmod 0777 /system/etc/security/drm
+    chmod 0777  /system/etc/security/drm/sample.hds
+    mkdir /data/data/.drm/ 0777
+    mkdir /data/data/.drm/.wmdrm 0777
+    #mkdir /data/data/.drm/.divxdrm 0777
+    mkdir /efs/.android 0777
+    chmod 0777  /data/data/.drm/.wmdrm/sample.hds
+    mkdir /data/data/.youtube 0777
+    chmod 0662 /dev/log/events
+    chmod 0662 /dev/log/system
+    chown radio system /sys/android_power/state
+    chown radio system /sys/android_power/request_state
+    chown radio system /sys/android_power/acquire_full_wake_lock
+    chown radio system /sys/android_power/acquire_partial_wake_lock
+    chown radio system /sys/android_power/release_wake_lock
+    chown radio system /sys/power/state
+    chown radio system /sys/power/wake_lock
+    chown radio system /sys/power/wake_unlock
+	chown radio system /sys/power/dvfslock_ctrl
+    chmod 0660 /sys/power/state
+    chmod 0660 /sys/power/wake_lock
+    chmod 0660 /sys/power/wake_unlock
+	chmod 0660 /sys/power/dvfslock_ctrl
+    chown system system /sys/class/timed_output/vibrator/enable
+    chown system system /sys/class/leds/keyboard-backlight/brightness
+#    chown system system /sys/class/leds/lcd-backlight/brightness
+    chown system system /sys/class/backlight/s5p_bl/brightness
+    chown system system /sys/class/leds/button-backlight/brightness
+    chown system system /sys/class/leds/jogball-backlight/brightness
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chown system system /sys/class/leds/red/device/grpfreq
+    chown system system /sys/class/leds/red/device/grppwm
+    chown system system /sys/class/leds/red/device/blink
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chown system system /sys/class/leds/red/device/grpfreq
+    chown system system /sys/class/leds/red/device/grppwm
+    chown system system /sys/class/leds/red/device/blink
+    chown system system /sys/class/timed_output/vibrator/enable
+    chown system system /sys/module/sco/parameters/disable_esco
+    chown system system /sys/kernel/ipv4/tcp_wmem_min
+    chown system system /sys/kernel/ipv4/tcp_wmem_def
+    chown system system /sys/kernel/ipv4/tcp_wmem_max
+    chown system system /sys/kernel/ipv4/tcp_rmem_min
+    chown system system /sys/kernel/ipv4/tcp_rmem_def
+    chown system system /sys/kernel/ipv4/tcp_rmem_max
+    chown root radio /proc/cmdline
+    chown compass system /dev/i2c-12
+    chmod 0777 /dev/i2c-12
+    chown compass system /dev/i2c-5
+    chmod 0777 /dev/yamaha_compass
+    chown system system /dev/light
+    chmod 0777 /dev/light
+    chown system system /dev/proximity
+    chmod 0777 /dev/proximity
+    chmod 0777 /dev/accelerometer
+	chmod 0777 /system/etc/audio/stream_speaker.txt
+	chmod 0777 /system/etc/audio/stream_headset.txt
+	chmod 0777 /system/etc/audio/stream_earpiece.txt
+	chmod 0777 /system/etc/audio/situation.txt
+	chmod 0777 /system/etc/audio/aeqcoe.txt
+	chmod 0777 /system/etc/audio/soundbooster.txt
+	chmod 0777 /system/etc/audio/srstunning.txt
+	chmod 0777 /system/etc/audio/ArkamysTuning.txt
+    chown bluetooth bluetooth /sys/module/bluetooth_power/parameters/power
+    chown bluetooth bluetooth /proc/bluetooth/sleep/proto
+    chown system system /sys/module/sco/parameters/disable_esco
+    chmod 0660 /sys/module/bluetooth_power/parameters/power
+    chmod 0660 /proc/bluetooth/sleep/proto
+    chown bluetooth bluetooth /dev/uinput
+    chmod 0660 /dev/uinput
+    chown bluetooth bluetooth /dev/s3c2410_serial0
+    chmod 0660 /dev/s3c2410_serial0
+    chmod 0770 /sys/class/rfkill/rfkill0/state
+    chmod 0770 /sys/class/rfkill/rfkill1/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
+    chmod 6771 /system/bin/brcm_dutMode
+    chown system system /dev/ttygs0
+    chown system system /dev/dun
+    chown root root /system/xbin/dreboot
+    chmod 6777 /system/xbin/dreboot
