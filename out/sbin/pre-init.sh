@@ -16,11 +16,11 @@
 /sbin/busybox insmod /lib/modules/j4fs.ko
 /sbin/busybox insmod /lib/modules/param.ko
 
-/sbin/busymox mkdir /dev
-/sbin/busymox mkdir /proc
-/sbin/busymox mkdir /sys
-/sbin/busymox mkdir /system
-/sbin/busymox mkdir /data
+/sbin/busybox mkdir /dev
+/sbin/busybox mkdir /proc
+/sbin/busybox mkdir /sys
+/sbin/busybox mkdir /system
+/sbin/busybox mkdir /data
 
 # mount and create most of the device nodes. This is done by init, but unfortunately, we're running before init...
 /sbin/busybox mount -t proc proc /proc
