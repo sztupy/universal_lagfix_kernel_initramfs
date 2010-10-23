@@ -20,6 +20,12 @@
 /sbin/busybox mount -t proc proc /proc
 /sbin/busybox mount -t sysfs sys /sys
 
+/sbin/busymox mkdir /dev
+/sbin/busymox mkdir /proc
+/sbin/busymox mkdir /sys
+/sbin/busymox mkdir /system
+/sbin/busymox mkdir /data
+
 /sbin/busybox mkdir /tmp
 /sbin/busybox mount -t tmpfs tmpfs /tmp
 
@@ -256,6 +262,11 @@ echo Creating mount points
 
 # mount and check /system. Some modules are needed from /system/lib
 echo Checking /system
+
+# if mounting system fails this will allow adb to run
+/sbin/busybox mkdir /system
+/sbin/busybox mkdir /system/bin
+/sbin/busybox ln /sbin/recovery /system/bin/sh
 
 # first try it as rfs
 SYSTEM_FS_TYPE=rfs
