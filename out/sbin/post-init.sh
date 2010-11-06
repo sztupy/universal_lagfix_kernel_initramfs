@@ -43,6 +43,17 @@ if /sbin/busybox [ "`grep MISC /system/etc/tweaks.conf`" ]; then
   setprop wifi.supplicant_scan_interval 90
 fi
 
+# BacklightNotification
+if /sbin/busybox [ $(cat /system/etc/bln.conf) -eq 1 ]
+    then
+	echo 1 > /sys/class/backlightnotification/enabled
+    else
+	echo 0 > /sys/class/backlightnotification/enabled
+fi
+
+# install BacklightNotfication liblights
+/sbin/busybox install_bln_liblights.sh
+
 # We will delete these links including the symlink to CWM's busybox, so they won't interfere with the optionally installed busybox on the device
 /sbin/busybox rm /sbin/[
 /sbin/busybox rm /sbin/[[
