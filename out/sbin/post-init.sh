@@ -46,9 +46,9 @@ fi
 # BacklightNotification
 if /sbin/busybox [ $(cat /system/etc/bln.conf) -eq 1 ]
     then
-	echo 1 > /sys/class/backlightnotification/enabled
+	echo 1 > /sys/class/misc/backlightnotification/enabled
     else
-	echo 0 > /sys/class/backlightnotification/enabled
+	echo 0 > /sys/class/misc/backlightnotification/enabled
 fi
 
 # install BacklightNotfication liblights
