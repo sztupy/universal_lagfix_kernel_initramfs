@@ -52,7 +52,8 @@ if /sbin/busybox [ $(cat /system/etc/bln.conf) -eq 1 ]
 fi
 
 # install BacklightNotfication liblights
-/sbin/busybox install_bln_liblights.sh
+/sbin/busybox sh /sbin/install_bln_liblights.sh
+
 
 # We will delete these links including the symlink to CWM's busybox, so they won't interfere with the optionally installed busybox on the device
 /sbin/busybox rm /sbin/[

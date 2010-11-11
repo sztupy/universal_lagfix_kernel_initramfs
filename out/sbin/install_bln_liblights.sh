@@ -1,39 +1,54 @@
+#!/sbin/busybox sh
+
 # BacklightNotification
 # Installs bln liblights
+#
+# Copyright Michael Richter (neldar)), Licence: GPLv3
 
 # commands need:
 #   test [-f, -gt]
-#   cp
-#   mv
 #   strings
-#   grep [-c]
+#   grep [-c] (no regex needed)
+#   cp
 
-#eclair
-#liblights_name = "lights.default.so"
-#liblights_destdir = "/system/lib/hw/"
-#liblights_sourcedir = "/res/misc/"
+# TODO: modify these paths to your needs
+GREP='/sbin/busybox grep'
+STRINGS='/sbin/busybox strings'
+TEST='/sbin/busybox test'
+
+## TODO: select the liblights name for your kernel/android version
+# eclair:
+#liblights_name=lights.default.so
+
+# froyo:
+liblights_name=lights.s5pc110.so
+##
+
+# TODO: change the sourcedir to your needs
+liblights_sourcedir=/res/misc
 
 
-# froyo
-liblights_name = "lights.s5pc110.so"
-liblights_sourcedir = "/res/misc"
-liblights_destdir = "/system/lib/hw"
+# dont modifiy the destdir path
+liblights_destdir=/system/lib/hw
 
 
-if test ($(strings $liblights_dest/$liblights_name | grep -c "backlightnotification") -eq 0
+# TODO: if you want, you can adjust the "log" lines
+if $TEST $($STRINGS $liblights_destdir/$liblights_name | $GREP -c backlightnotification) -eq 0
     then
-	#no bln liblights or liblights v0
-	if test ! -f $liblights_dest/${liblights_name}.backup
+#	log "no bln liblights or liblights v0 found"
+	if $TEST ! -f $liblights_destdir/${liblights_name}.backup
 	    then
-		mv $liblights_dest/$liblights_name $liblights_dest/${liblights_name}.backup
+		cp $liblights_destdir/$liblights_name $liblights_destdir/${liblights_name}.backup
+#		log "old liblights backed up"
 #	    else
-#		log "liblights already backed up"
+# only uncomment this else, if log below also is uncomment or script will fail
+#		log "old liblights already backed up"
 	fi
 #	log "copying bln liblights"
-	cp $liblights_sourcedir/$liblights_name $liblights_dest/
-	chmod 644 $liblights_dest
+	cp $liblights_sourcedir/$liblights_name $liblights_destdir/
+	chmod 644 $liblights_destdir/$liblights_name
 #    else
-#	log "liblights version >= v1"
+#	log "liblights version >= v1; nothing done"
 fi
 
 exit 0;
